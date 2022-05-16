@@ -1,0 +1,21 @@
+keyword ::= if | while | else | var | const
+
+program ::= statements EOF
+
+statement ::= expression
+            | if-statement
+            | while-loop
+            | declaration
+            | block
+
+if-statement ::= if (expression) block
+               | if (expression) block else block
+               | if (expression) block else if-statement
+
+while-loop ::= while (expression) block
+
+declaration ::= var id = expression;
+              | const id = expression;
+
+block ::= { statements }
+statements ::= nil | statement; statements

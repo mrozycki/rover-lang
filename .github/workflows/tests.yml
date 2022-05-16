@@ -1,0 +1,21 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build and test
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        cmake --build .
+        ctest
