@@ -4,11 +4,22 @@ project(roverlang)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(lexer src/lexer/lexer.cpp src/lexer/token.cpp)
+add_library(lexer
+  src/lexer/lexer.cpp
+  src/lexer/token.cpp
+)
 target_include_directories(lexer PUBLIC src/lexer)
 
+add_library(parser 
+  src/parser/ast.cpp
+  src/parser/ast_printer.cpp
+  src/parser/parser.cpp
+)
+target_include_directories(parser PUBLIC src/parser)
+target_link_libraries(parser PRIVATE lexer)
+
 add_executable(rover src/main.cpp)
-target_link_libraries(rover PRIVATE lexer)
+target_link_libraries(rover PRIVATE lexer parser)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -34,4 +45,3 @@ target_link_libraries(
 
 include(GoogleTest)
 gtest_discover_tests(lexer_test)
-

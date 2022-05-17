@@ -45,5 +45,5 @@ struct token {
     std::optional<std::string> payload;
 };
 
-std::ostream& operator<<(std::ostream& os, const token& t);
+std::ostream& operator<<(std::ostream& os, token const& t);
 } // namespace rover

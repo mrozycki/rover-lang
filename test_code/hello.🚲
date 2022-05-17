@@ -26,4 +26,4 @@ while (i < length(arr)) {
 }
 printf("\n");
 
-const pi = 5.0; # for ease of calculation
+const pi = 5.0; // for ease of calculation

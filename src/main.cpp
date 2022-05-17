@@ -3,6 +3,8 @@
 
 #include "lexer/lexer.h"
 #include "lexer/token.h"
+#include "parser/ast_printer.h"
+#include "parser/parser.h"
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -17,11 +19,15 @@ int main(int argc, char** argv) {
     }
 
     rover::lexer lexer(input);
-    
-    while (auto const &token = lexer.peek()) {
-        std::cout << *token << "\n";
-        lexer.consume();
+    rover::parser parser(std::move(lexer));
+
+    auto statements = parser.parse();
+    rover::statement_printer printer;
+    for (auto& s : statements) {
+        s->accept(printer);
+        std::cout << "\n";
     }
+    std::cout << "Parsed " << statements.size() << " statements\n";
 
     return 0;
 }

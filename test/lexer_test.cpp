@@ -1,13 +1,12 @@
 #include <gtest/gtest.h>
-
 #include <lexer.h>
 #include <token.h>
 
 class lexer_test : public ::testing::Test {
 protected:
-    virtual void SetUp() { }
+    virtual void SetUp() {}
 
-    virtual void TearDown() { }
+    virtual void TearDown() {}
 };
 
 TEST_F(lexer_test, test_lexer_peek) {
@@ -39,7 +38,7 @@ TEST_F(lexer_test, test_lexer_consume_if) {
     std::istringstream input("+");
     rover::lexer lexer(input);
 
-    auto token = lexer.consume_if(rover::token_type::PLUS);
+    auto token = lexer.consume_if({rover::token_type::PLUS});
     ASSERT_TRUE(token);
     EXPECT_EQ(token->type, rover::token_type::PLUS);
     EXPECT_FALSE(token->payload);
@@ -54,7 +53,7 @@ TEST_F(lexer_test, test_lexer_consume_if_not) {
     std::istringstream input("+");
     rover::lexer lexer(input);
 
-    auto token = lexer.consume_if(rover::token_type::MINUS);
+    auto token = lexer.consume_if({rover::token_type::MINUS});
     ASSERT_FALSE(token);
 
     token = lexer.peek();
