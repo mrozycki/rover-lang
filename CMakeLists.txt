@@ -4,19 +4,8 @@ project(roverlang)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(lexer
-  src/lexer/lexer.cpp
-  src/lexer/token.cpp
-)
-target_include_directories(lexer PUBLIC src/lexer)
-
-add_library(parser 
-  src/parser/ast.cpp
-  src/parser/ast_printer.cpp
-  src/parser/parser.cpp
-)
-target_include_directories(parser PUBLIC src/parser)
-target_link_libraries(parser PRIVATE lexer)
+add_subdirectory(src/lexer)
+add_subdirectory(src/parser)
 
 add_executable(rover src/main.cpp)
 target_link_libraries(rover PRIVATE lexer parser)
@@ -29,7 +18,6 @@ FetchContent_Declare(
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
-
 
 enable_testing()
 
