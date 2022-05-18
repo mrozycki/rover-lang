@@ -47,6 +47,10 @@ std::optional<token> lexer::peek() {
     while (input.get(c) && std::isspace(c))
         ;
 
+    if (!input) {
+        return emit(token{token_type::END_OF_FILE, {}});
+    }
+
     if (std::isalpha(c)) {
         std::string s;
         s += c;
