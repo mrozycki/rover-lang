@@ -3,11 +3,37 @@
 #include <algorithm>
 
 namespace rover {
-lexer::lexer(std::istream& input) : input(input) {}
+lexer::lexer(std::istream& input) : input(input), line(1), column(0) {}
 
 std::optional<token> lexer::emit(token const& t) {
     peeked = {t};
     return peeked;
+}
+
+std::basic_istream<char>& lexer::get(char& c) {
+    auto& ret = input.get(c);
+
+    if (c == '\n') {
+        column = 0;
+        ++line;
+    } else {
+        ++column;
+    }
+
+    return ret;
+}
+
+std::basic_istream<char>& lexer::unget() {
+    auto& ret = input.unget();
+
+    --column;
+
+    if (column < 0) {
+        column = 0;
+        --line;
+    }
+
+    return ret;
 }
 
 std::optional<token> lexer::consume() {
@@ -40,139 +66,140 @@ std::optional<token> lexer::peek() {
     }
 
     if (!input) {
-        return emit(token{token_type::END_OF_FILE, {}});
+        return emit(token{token_type::END_OF_FILE, line, column, {}});
     }
 
     char c;
-    while (input.get(c) && std::isspace(c))
+    while (get(c) && std::isspace(c))
         ;
 
     if (!input) {
         return emit(token{token_type::END_OF_FILE, {}});
     }
 
+    auto start_column = column;
+
     if (std::isalpha(c)) {
         std::string s;
         s += c;
-        input.get(c);
+        get(c);
 
         while (std::isalnum(c) || c == '_') {
             s += c;
-            input.get(c);
+            get(c);
         }
-        input.unget();
+        unget();
 
         if (s == "if") {
-            return emit(token{token_type::IF, {}});
+            return emit(token{token_type::IF, line, start_column, {}});
         } else if (s == "else") {
-            return emit(token{token_type::ELSE, {}});
+            return emit(token{token_type::ELSE, line, start_column, {}});
         } else if (s == "while") {
-            return emit(token{token_type::WHILE, {}});
+            return emit(token{token_type::WHILE, line, start_column, {}});
         } else if (s == "var") {
-            return emit(token{token_type::VAR, {}});
+            return emit(token{token_type::VAR, line, start_column, {}});
         } else if (s == "const") {
-            return emit(token{token_type::CONST, {}});
+            return emit(token{token_type::CONST, line, start_column, {}});
         } else {
-            return emit(token{token_type::IDENTIFIER, {s}});
+            return emit(token{token_type::IDENTIFIER, line, start_column, {s}});
         }
     } else if (std::isdigit(c)) {
         std::string s;
         s += c;
 
-        while (input.get(c) && std::isdigit(c)) {
+        while (get(c) && std::isdigit(c)) {
             s += c;
         }
 
         if (c == '.') {
             s += c;
-            while (input.get(c) && std::isdigit(c)) {
+            while (get(c) && std::isdigit(c)) {
                 s += c;
             }
-            input.unget();
+            unget();
 
-            return emit(token{token_type::FLOAT, s});
+            return emit(token{token_type::FLOAT, line, start_column, s});
         } else {
-            input.unget();
-            return emit(token{token_type::INT, s});
+            unget();
+            return emit(token{token_type::INT, line, start_column, s});
         }
     } else if (c == '\0') {
-        return emit(token{token_type::END_OF_FILE, {}});
+        return emit(token{token_type::END_OF_FILE, line, start_column, {}});
     } else if (c == '+') {
-        return emit(token{token_type::PLUS, {}});
+        return emit(token{token_type::PLUS, line, start_column, {}});
     } else if (c == '-') {
-        return emit(token{token_type::MINUS, {}});
+        return emit(token{token_type::MINUS, line, start_column, {}});
     } else if (c == '*') {
-        return emit(token{token_type::STAR, {}});
+        return emit(token{token_type::STAR, line, start_column, {}});
     } else if (c == '/') {
         char next;
-        input.get(next);
+        get(next);
         if (next == '/') {
-            while (input.get(next) && next != '\n')
+            while (get(next) && next != '\n')
                 ;
             return peek();
         } else {
-            input.unget();
-            return emit(token{token_type::SLASH, {}});
+            unget();
+            return emit(token{token_type::SLASH, line, start_column, {}});
         }
     } else if (c == '=') {
         char next;
-        input.get(next);
+        get(next);
         if (next == '=') {
-            return emit(token{token_type::EQUAL, {}});
+            return emit(token{token_type::EQUAL, line, start_column, {}});
         } else {
-            input.unget();
-            return emit(token{token_type::ASSIGN, {}});
+            unget();
+            return emit(token{token_type::ASSIGN, line, start_column, {}});
         }
     } else if (c == '!') {
         char next;
-        input.get(next);
+        get(next);
         if (next == '=') {
-            return emit(token{token_type::NOT_EQUAL, {}});
+            return emit(token{token_type::NOT_EQUAL, line, start_column, {}});
         } else {
-            input.unget();
-            return emit(token{token_type::NOT, {}});
+            unget();
+            return emit(token{token_type::NOT, line, start_column, {}});
         }
     } else if (c == '<') {
         char next;
-        input.get(next);
+        get(next);
         if (next == '=') {
-            return emit(token{token_type::LESS_EQUAL, {}});
+            return emit(token{token_type::LESS_EQUAL, line, start_column, {}});
         } else {
-            input.unget();
-            return emit(token{token_type::LESS_THAN, {}});
+            unget();
+            return emit(token{token_type::LESS_THAN, line, start_column, {}});
         }
-        return emit(token{token_type::LESS_THAN, {}});
     } else if (c == '>') {
         char next;
-        input.get(next);
+        get(next);
         if (next == '=') {
-            return emit(token{token_type::GREATER_EQUAL, {}});
+            return emit(token{token_type::GREATER_EQUAL, line, start_column, {}});
         } else {
-            input.unget();
-            return emit(token{token_type::GREATER_THAN, {}});
+            unget();
+            return emit(token{token_type::GREATER_THAN, line, start_column, {}});
         }
     } else if (c == '{') {
-        return emit(token{token_type::LEFT_BRACE, {}});
+        return emit(token{token_type::LEFT_BRACE, line, start_column, {}});
     } else if (c == '}') {
-        return emit(token{token_type::RIGHT_BRACE, {}});
+        return emit(token{token_type::RIGHT_BRACE, line, start_column, {}});
     } else if (c == '(') {
-        return emit(token{token_type::LEFT_PAREN, {}});
+        return emit(token{token_type::LEFT_PAREN, line, start_column, {}});
     } else if (c == ')') {
-        return emit(token{token_type::RIGHT_PAREN, {}});
+        return emit(token{token_type::RIGHT_PAREN, line, start_column, {}});
     } else if (c == '[') {
-        return emit(token{token_type::LEFT_SQUARE, {}});
+        return emit(token{token_type::LEFT_SQUARE, line, start_column, {}});
     } else if (c == ']') {
-        return emit(token{token_type::RIGHT_SQUARE, {}});
+        return emit(token{token_type::RIGHT_SQUARE, line, start_column, {}});
     } else if (c == ',') {
-        return emit(token{token_type::COMMA, {}});
+        return emit(token{token_type::COMMA, line, start_column, {}});
     } else if (c == ';') {
-        return emit(token{token_type::SEMICOLON, {}});
+        return emit(token{token_type::SEMICOLON, line, start_column, {}});
     } else if (c == '"') {
         std::string str;
-        while (input.get(c) && c != '"') {
+        while (get(c) && c != '"') {
             str += c;
         }
-        return emit(token{token_type::STRING, {str}});
+        return emit(token{token_type::STRING, line, start_column, {str}});
     }
     return {};
 }

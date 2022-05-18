@@ -11,8 +11,12 @@ class lexer {
 private:
     std::istream& input;
     std::optional<token> peeked;
+    std::size_t line;
+    std::size_t column;
 
     std::optional<token> emit(token const& t);
+    std::basic_istream<char>& get(char& c);
+    std::basic_istream<char>& unget();
 
 public:
     lexer(std::istream& input);

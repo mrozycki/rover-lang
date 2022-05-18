@@ -42,6 +42,8 @@ enum class token_type {
 
 struct token {
     token_type type;
+    std::size_t line;
+    std::size_t column;
     std::optional<std::string> payload;
 };
 
