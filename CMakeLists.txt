@@ -6,9 +6,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(src/lexer)
 add_subdirectory(src/parser)
+add_subdirectory(src/interpreter)
 
 add_executable(rover src/main.cpp)
-target_link_libraries(rover PRIVATE lexer parser)
+target_link_libraries(rover PRIVATE lexer parser interpreter)
 
 include(FetchContent)
 FetchContent_Declare(

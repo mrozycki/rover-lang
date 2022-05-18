@@ -1,0 +1,16 @@
+if (1.0 == 1.6) {
+    printf("Hello, rover!\n");
+} else {
+    printf("Cannot happen\n");
+}
+
+printf("Six:", 2 + 2 * 2);
+printf("Six:", 2 * 2 + 2);
+printf("Eight:", (2 + 2) * 2);
+printf("Eight:", 2 * (2 + 2));
+
+if (2 + 2 * 2 == 6) {
+    printf("Correct\n");
+}
+
+printf("Next year is: {}\n", next_year);

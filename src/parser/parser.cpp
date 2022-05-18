@@ -108,7 +108,7 @@ std::unique_ptr<expression> parser::term() {
         return {};
     }
 
-    while (auto t = lexer_.consume_if({token_type::STAR, token_type::SLASH})) {
+    while (auto t = lexer_.consume_if({token_type::PLUS, token_type::MINUS})) {
         auto right = factor();
         if (!right) {
             return {};
@@ -126,7 +126,7 @@ std::unique_ptr<expression> parser::factor() {
         return {};
     }
 
-    while (auto t = lexer_.consume_if({token_type::PLUS, token_type::MINUS})) {
+    while (auto t = lexer_.consume_if({token_type::STAR, token_type::SLASH})) {
         auto right = unary();
         if (!right) {
             return {};

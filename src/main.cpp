@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "interpreter/interpreter.h"
 #include "lexer/lexer.h"
 #include "lexer/token.h"
 #include "parser/ast_printer.h"
@@ -22,12 +23,10 @@ int main(int argc, char** argv) {
     rover::parser parser(std::move(lexer));
 
     auto statements = parser.parse();
-    rover::statement_printer printer;
+    rover::statement_executor executor;
     for (auto& s : statements) {
-        s->accept(printer);
-        std::cout << "\n";
+        s->accept(executor);
     }
-    std::cout << "Parsed " << statements.size() << " statements\n";
 
     return 0;
 }
