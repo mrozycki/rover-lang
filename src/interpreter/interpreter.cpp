@@ -5,10 +5,10 @@ expression_evaluator::expression_evaluator(context* ctx_) : ctx(ctx_) {}
 expression_evaluator::~expression_evaluator() {}
 void expression_evaluator::visit(binary_op_expression const& node) {
     node.left->accept(*this);
-    auto left = result.value;
+    auto left = result.val;
 
     node.right->accept(*this);
-    auto right = result.value;
+    auto right = result.val;
 
     switch (node.op.type) {
     case token_type::PLUS:
@@ -118,7 +118,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
 
 void expression_evaluator::visit(unary_op_expression const& node) {
     node.right->accept(*this);
-    auto value = result.value;
+    auto value = result.val;
 
     switch (node.op.type) {
     case token_type::MINUS:
@@ -182,22 +182,22 @@ void expression_evaluator::visit(function_call_expression const& node) {
         }
         expression_evaluator eval(ctx);
         node.arguments.front()->accept(eval);
-        if (!std::holds_alternative<std::string>(eval.result.value)) {
+        if (!std::holds_alternative<std::string>(eval.result.val)) {
             std::cerr << "Interpreter error: Function printf requires a format string as its first argument\n";
             return;
         }
-        auto format = std::get<std::string>(eval.result.value);
+        auto format = std::get<std::string>(eval.result.val);
         std::cout << format << " ";
 
         // TODO: Use format string to print arguments
         for (auto it = node.arguments.begin() + 1; it != node.arguments.end(); ++it) {
             (*it)->accept(eval);
-            if (std::holds_alternative<int>(eval.result.value)) {
-                std::cout << std::get<int>(eval.result.value) << " ";
-            } else if (std::holds_alternative<double>(eval.result.value)) {
-                std::cout << std::get<double>(eval.result.value) << " ";
-            } else if (std::holds_alternative<std::string>(eval.result.value)) {
-                std::cout << std::get<std::string>(eval.result.value) << " ";
+            if (std::holds_alternative<int>(eval.result.val)) {
+                std::cout << std::get<int>(eval.result.val) << " ";
+            } else if (std::holds_alternative<double>(eval.result.val)) {
+                std::cout << std::get<double>(eval.result.val) << " ";
+            } else if (std::holds_alternative<std::string>(eval.result.val)) {
+                std::cout << std::get<std::string>(eval.result.val) << " ";
             } else {
                 std::cout << "INVALID";
             }
@@ -242,12 +242,12 @@ void statement_executor::visit(definition_statement const& node) {
 
 namespace {
     bool is_truthy(value const& v) {
-        if (std::holds_alternative<int>(v.value)) {
-            return std::get<int>(v.value) != 0;
-        } else if (std::holds_alternative<double>(v.value)) {
-            return std::get<double>(v.value) != 0;
-        } else if (std::holds_alternative<std::string>(v.value)) {
-            return !std::get<std::string>(v.value).empty();
+        if (std::holds_alternative<int>(v.val)) {
+            return std::get<int>(v.val) != 0;
+        } else if (std::holds_alternative<double>(v.val)) {
+            return std::get<double>(v.val) != 0;
+        } else if (std::holds_alternative<std::string>(v.val)) {
+            return !std::get<std::string>(v.val).empty();
         } else {
             return false;
         }

@@ -7,7 +7,7 @@
 
 namespace rover {
 struct value {
-    std::variant<int, double, std::string, std::vector<value>, std::nullopt_t> value;
+    std::variant<int, double, std::string, std::vector<value>, std::nullopt_t> val;
     bool is_const;
 };
 } // namespace rover
