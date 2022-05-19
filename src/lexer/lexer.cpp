@@ -196,8 +196,22 @@ std::optional<token> lexer::peek() {
         return emit(token{token_type::SEMICOLON, line, start_column, {}});
     } else if (c == '"') {
         std::string str;
-        while (get(c) && c != '"') {
-            str += c;
+        while (get(c)) {
+            if (c == '\\') {
+                char next;
+                if (get(next)) {
+                    if (next == '"') {
+                        str += '"';
+                    } else {
+                        str += '\\';
+                        unget();
+                    }
+                }
+            } else if (c == '"') {
+                break;
+            } else {
+                str += c;
+            }
         }
         return emit(token{token_type::STRING, line, start_column, {str}});
     }
