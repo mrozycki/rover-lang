@@ -187,22 +187,56 @@ void expression_evaluator::visit(function_call_expression const& node) {
             return;
         }
         auto format = std::get<std::string>(eval.result.val);
-        std::cout << format << " ";
 
-        // TODO: Use format string to print arguments
-        for (auto it = node.arguments.begin() + 1; it != node.arguments.end(); ++it) {
-            (*it)->accept(eval);
-            if (std::holds_alternative<int>(eval.result.val)) {
-                std::cout << std::get<int>(eval.result.val) << " ";
-            } else if (std::holds_alternative<double>(eval.result.val)) {
-                std::cout << std::get<double>(eval.result.val) << " ";
-            } else if (std::holds_alternative<std::string>(eval.result.val)) {
-                std::cout << std::get<std::string>(eval.result.val) << " ";
+        auto arg_it = node.arguments.begin() + 1;
+
+        for (auto it = format.begin(); it != format.end(); ++it) {
+            if (*it == '\\') {
+                ++it;
+                if (*it == '\\') {
+                    std::cout << '\\';
+                } else if (*it == 'n') {
+                    std::cout << '\n';
+                } else if (*it == 't') {
+                    std::cout << '\t';
+                } else if (*it == 'r') {
+                    std::cout << '\r';
+                } else if (*it == 'v') {
+                    std::cout << '\v';
+                } else if (*it == 'b') {
+                    std::cout << '\b';
+                } else if (*it == 'a') {
+                    std::cout << '\a';
+                } else if (*it == 'f') {
+                    std::cout << '\f';
+                } else if (*it == '0') {
+                    std::cout << '\0';
+                } else {
+                    std::cerr << "Interpreter error: Unknown escape sequence in format string\n";
+                    break;
+                }
+            } else if (*it == '{' && *(it + 1) == '}') {
+                if (arg_it == node.arguments.end()) {
+                    std::cerr << "Interpreter error: Too few arguments for format string\n";
+                    break;
+                }
+                (*arg_it)->accept(eval);
+                if (std::holds_alternative<int>(eval.result.val)) {
+                    std::cout << std::get<int>(eval.result.val);
+                } else if (std::holds_alternative<double>(eval.result.val)) {
+                    std::cout << std::get<double>(eval.result.val);
+                } else if (std::holds_alternative<std::string>(eval.result.val)) {
+                    std::cout << std::get<std::string>(eval.result.val);
+                } else {
+                    std::cout << "INVALID";
+                }
+                ++arg_it;
+                ++it;
             } else {
-                std::cout << "INVALID";
+                std::cout << *it;
             }
         }
-        std::cout << std::endl;
+        std::cout.flush();
     } else {
         std::cerr << "Unknown function: " << *callee->identifier.payload << "\n";
     }
