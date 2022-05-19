@@ -16,8 +16,8 @@ private:
 public:
     context(context* parent_);
 
-    void set(std::string const& name, value v);
-    bool update(std::string const& name, value v);
+    void set(std::string const& name, value const& v);
+    bool update(std::string const& name, value const& v);
     std::optional<value> get(std::string const& name) const;
 };
 } // namespace rover

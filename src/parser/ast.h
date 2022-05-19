@@ -90,12 +90,12 @@ struct array_ref_expression : public expression {
     std::unique_ptr<expression> index;
 };
 
-class statement;
-class expression_statement;
-class block_statement;
-class definition_statement;
-class conditional_statement;
-class while_statement;
+struct statement;
+struct expression_statement;
+struct block_statement;
+struct definition_statement;
+struct conditional_statement;
+struct while_statement;
 
 class statement_visitor {
 public:
@@ -107,7 +107,7 @@ public:
     virtual void visit(while_statement const& node) = 0;
 };
 
-class statement {
+struct statement {
 public:
     virtual ~statement() = default;
     virtual void accept(statement_visitor& visitor) = 0;

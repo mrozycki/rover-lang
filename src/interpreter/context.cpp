@@ -3,9 +3,9 @@
 namespace rover {
 context::context(context* parent_) : parent(parent_) {}
 
-void context::set(std::string const& name, value v) { variables[name] = v; }
+void context::set(std::string const& name, value const& v) { variables[name] = v; }
 
-bool context::update(std::string const& name, value v) {
+bool context::update(std::string const& name, value const& v) {
     auto it = variables.find(name);
     if (it == variables.end()) {
         if (parent) {
