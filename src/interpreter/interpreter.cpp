@@ -22,7 +22,7 @@ value* expression_evaluator::get(expression const& node) {
             return nullptr;
         }
 
-        if (std::get<int>(index) >= array_ref.size()) {
+        if (std::get<int>(index) >= static_cast<int>(array_ref.size())) {
             report_error("Array index out of bounds.");
             return nullptr;
         }
@@ -258,6 +258,11 @@ void expression_evaluator::visit(function_call_expression const& node) {
         for (auto it = format.begin(); it != format.end(); ++it) {
             if (*it == '\\') {
                 ++it;
+                if (it == format.end()) {
+                    report_error("Invalid format string");
+                    result = {std::nullopt};
+                    return;
+                }
                 if (*it == '\\') {
                     std::cout << '\\';
                 } else if (*it == 'n') {
@@ -278,12 +283,20 @@ void expression_evaluator::visit(function_call_expression const& node) {
                     std::cout << '\0';
                 } else {
                     report_error("Unknown escape sequence in format string");
-                    break;
+                    result = {std::nullopt};
+                    return;
                 }
-            } else if (*it == '{' && *(it + 1) == '}') {
+            } else if (*it == '{') {
+                ++it;
+                if (it == format.end() || *it != '}') {
+                    report_error("Invalid format string");
+                    result = {std::nullopt};
+                    return;
+                }
                 if (arg_it == node.arguments.end()) {
                     report_error("Too few arguments for format string");
-                    break;
+                    result = {std::nullopt};
+                    return;
                 }
                 (*arg_it)->accept(eval);
                 if (std::holds_alternative<int>(eval.result.val)) {
@@ -296,7 +309,6 @@ void expression_evaluator::visit(function_call_expression const& node) {
                     std::cout << "INVALID";
                 }
                 ++arg_it;
-                ++it;
             } else {
                 std::cout << *it;
             }
@@ -392,7 +404,7 @@ void expression_evaluator::visit(array_ref_expression const& node) {
         return;
     }
 
-    if (std::get<int>(index) >= elements.size()) {
+    if (std::get<int>(index) >= static_cast<int>(elements.size())) {
         report_error("Array index out of bounds");
         result = {std::nullopt};
         return;
