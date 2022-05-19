@@ -1,0 +1,17 @@
+var x = 7;
+
+printf("{}\n", x);
+
+x = x + 2;
+
+if (x != 9) {
+    printf("Nooo");
+} else {
+    printf("Yes!");
+}
+
+var year = 90;
+while (year > 0) {
+    printf("{}\n", year);
+    year = year + 1;
+}

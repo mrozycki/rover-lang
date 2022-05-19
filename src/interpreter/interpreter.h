@@ -4,11 +4,16 @@
 
 #include <ast.h>
 
-namespace rover {
-using value = std::variant<int, double, std::string, std::nullopt_t>;
+#include "context.h"
+#include "value.h"
 
+namespace rover {
 class expression_evaluator : public expression_visitor {
+private:
+    context* ctx;
+
 public:
+    explicit expression_evaluator(context* ctx_);
     virtual ~expression_evaluator();
     void visit(binary_op_expression const& node) override;
     void visit(unary_op_expression const& node) override;
@@ -22,7 +27,11 @@ public:
 };
 
 class statement_executor : public statement_visitor {
+private:
+    context* ctx;
+
 public:
+    explicit statement_executor(context* ctx_);
     virtual ~statement_executor();
     void visit(expression_statement const& node) override;
     void visit(block_statement const& node) override;

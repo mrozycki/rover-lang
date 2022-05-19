@@ -1,5 +1,6 @@
 add_library(interpreter
     interpreter.cpp
+    context.cpp
 )
 
 target_include_directories(interpreter PUBLIC .)

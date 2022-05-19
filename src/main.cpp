@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "interpreter/context.h"
 #include "interpreter/interpreter.h"
 #include "lexer/lexer.h"
 #include "lexer/token.h"
@@ -23,7 +24,7 @@ int main(int argc, char** argv) {
     rover::parser parser(std::move(lexer));
 
     auto statements = parser.parse();
-    rover::statement_executor executor;
+    rover::statement_executor executor(new rover::context(nullptr));
     for (auto& s : statements) {
         s->accept(executor);
     }
