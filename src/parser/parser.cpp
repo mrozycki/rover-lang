@@ -171,6 +171,7 @@ std::unique_ptr<expression> parser::postfix() {
             } while (lexer_.consume_if({token_type::COMMA}));
 
             if (!lexer_.consume_if({token_type::RIGHT_PAREN})) {
+                report_error("Expected ')' after function arguments", lexer_.peek());
                 return {};
             }
 
@@ -178,10 +179,12 @@ std::unique_ptr<expression> parser::postfix() {
         } else if (t->type == token_type::LEFT_SQUARE) {
             auto index = expression();
             if (!index) {
+                report_error("Expected valid index for array access", lexer_.peek());
                 return {};
             }
 
             if (!lexer_.consume_if({token_type::RIGHT_SQUARE})) {
+                report_error("Expected ']' after function arguments", lexer_.peek());
                 return {};
             }
 
@@ -211,6 +214,7 @@ std::unique_ptr<expression> parser::primary() {
         }
 
         if (!lexer_.consume_if({token_type::RIGHT_PAREN})) {
+            report_error("Expected ')' at the end of expression", lexer_.peek());
             return {};
         }
 
@@ -222,6 +226,7 @@ std::unique_ptr<expression> parser::primary() {
         do {
             auto elem = expression();
             if (!elem) {
+                report_error("Expected a valid element in array literal", lexer_.peek());
                 return {};
             }
 
@@ -229,12 +234,14 @@ std::unique_ptr<expression> parser::primary() {
         } while (lexer_.consume_if({token_type::COMMA}));
 
         if (!lexer_.consume_if({token_type::RIGHT_SQUARE})) {
+            report_error("Expected ']' at the end of array literal", lexer_.peek());
             return {};
         }
 
         return std::make_unique<array_literal_expression>(std::move(elements));
     }
     default:
+        report_error("Expected a primary expression", lexer_.peek());
         return {};
     }
 }
@@ -281,6 +288,7 @@ std::unique_ptr<rover::statement> parser::expression_statement() {
     }
 
     if (!lexer_.consume_if({token_type::SEMICOLON})) {
+        report_error("Expected ';' at the end of a statement", lexer_.peek());
         return {};
     }
 
@@ -291,13 +299,24 @@ std::unique_ptr<rover::statement> parser::if_statement() {
         return {};
     }
 
+    if (!lexer_.consume_if({token_type::LEFT_PAREN})) {
+        report_error("Expected '(' after 'if'", lexer_.peek());
+        return {};
+    }
+
     auto condition = expression();
     if (!condition) {
         return {};
     }
 
+    if (!lexer_.consume_if({token_type::RIGHT_PAREN})) {
+        report_error("Expected ')' after condition", lexer_.peek());
+        return {};
+    }
+
     auto then_branch = block_statement();
     if (!then_branch) {
+        report_error("Expected a block statement for conditional body", lexer_.peek());
         return {};
     }
 
@@ -315,12 +334,14 @@ std::unique_ptr<rover::statement> parser::if_statement() {
         } else if (lexer_.peek()->type == token_type::LEFT_BRACE) {
             auto else_branch = block_statement();
             if (!else_branch) {
+                report_error("Expected a block statement for else body", lexer_.peek());
                 return {};
             }
 
             return std::make_unique<conditional_statement>(std::move(condition), std::move(then_branch),
                                                            std::move(else_branch));
         } else {
+            report_error("Expected a block or if statement after else", lexer_.peek());
             return {};
         }
     } else {
@@ -333,13 +354,24 @@ std::unique_ptr<rover::statement> parser::while_statement() {
         return {};
     }
 
+    if (!lexer_.consume_if({token_type::LEFT_PAREN})) {
+        report_error("Expected '(' after 'while'", lexer_.peek());
+        return {};
+    }
+
     auto condition = expression();
     if (!condition) {
         return {};
     }
 
+    if (!lexer_.consume_if({token_type::RIGHT_PAREN})) {
+        report_error("Expected ')' after condition", lexer_.peek());
+        return {};
+    }
+
     auto body = block_statement();
     if (!body) {
+        report_error("Expected a block statement for while body", lexer_.peek());
         return {};
     }
 
@@ -362,6 +394,7 @@ std::unique_ptr<rover::statement> parser::block_statement() {
     }
 
     if (!lexer_.consume_if({token_type::RIGHT_BRACE})) {
+        report_error("Expected '}' at the end of the block", lexer_.peek());
         return {};
     }
 
@@ -376,19 +409,23 @@ std::unique_ptr<rover::statement> parser::definition_statement() {
 
     auto name = lexer_.consume_if({token_type::IDENTIFIER});
     if (!name) {
+        report_error("Expected an identifier in definition", lexer_.peek());
         return {};
     }
 
     if (!lexer_.consume_if({token_type::ASSIGN})) {
+        report_error("Expected an assignment operator after identifier in a definition", lexer_.peek());
         return {};
     }
 
     auto value = expression();
     if (!value) {
+        report_error("Expected a valid initializer after assignment operator", lexer_.peek());
         return {};
     }
 
     if (!lexer_.consume_if({token_type::SEMICOLON})) {
+        report_error("Expected ';' at the end of definition", lexer_.peek());
         return {};
     }
 

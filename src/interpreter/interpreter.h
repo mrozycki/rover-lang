@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <variant>
 
 #include <ast.h>
@@ -12,6 +13,8 @@ class expression_evaluator : public expression_visitor {
 private:
     context* ctx;
     value* get(expression const& node);
+
+    void report_error(std::string const& msg) { std::cout << "Interpreter error: " << msg << "\n"; }
 
 public:
     explicit expression_evaluator(context* ctx_);
@@ -30,6 +33,8 @@ public:
 class statement_executor : public statement_visitor {
 private:
     context* ctx;
+
+    void report_error(std::string const& msg) { std::cout << "Interpreter error: " << msg << "\n"; }
 
 public:
     explicit statement_executor(context* ctx_);

@@ -8,9 +8,12 @@
 #include "ast.h"
 
 namespace rover {
+
 class parser {
 private:
     lexer lexer_;
+
+    std::vector<std::string> errors_;
 
     std::unique_ptr<rover::expression> expression();
     std::unique_ptr<rover::expression> assignment();
@@ -31,8 +34,23 @@ private:
     std::unique_ptr<rover::statement> block_statement();
     std::unique_ptr<rover::statement> definition_statement();
 
+    void report_error(std::string const& message, std::optional<token> const& t) {
+        if (t) {
+            report_error(message, t->line, t->column);
+        } else {
+            report_error(message);
+        }
+    }
+
+    void report_error(std::string const& message, std::size_t line, std::size_t column) {
+        errors_.push_back(message + " in line " + std::to_string(line) + ", column " + std::to_string(column));
+    }
+
+    void report_error(std::string const& message) { errors_.push_back(message + "at end of file"); }
+
 public:
     parser(lexer l);
     std::vector<std::unique_ptr<rover::statement>> parse();
+    std::vector<std::string> errors() const { return errors_; }
 };
 } // namespace rover

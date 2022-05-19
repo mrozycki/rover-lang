@@ -10,7 +10,7 @@ value* expression_evaluator::get(expression const& node) {
     } else if (auto* e = dynamic_cast<array_ref_expression const*>(&node)) {
         auto* array = get(*e->array);
         if (!array || !std::holds_alternative<std::vector<value>>(array->val)) {
-            std::cerr << "Not an array\n";
+            report_error("Expected an array as the left-hand side of an array reference.");
             return nullptr;
         }
 
@@ -18,12 +18,12 @@ value* expression_evaluator::get(expression const& node) {
         e->index->accept(*this);
         auto index = result.val;
         if (!std::holds_alternative<int>(index)) {
-            std::cerr << "Not an index\n";
+            report_error("Expected an integer as the index of an array reference.");
             return nullptr;
         }
 
         if (std::get<int>(index) >= array_ref.size()) {
-            std::cerr << "Index out of bounds\n";
+            report_error("Array index out of bounds.");
             return nullptr;
         }
 
@@ -47,6 +47,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
         } else if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right)) {
             result = {std::get<double>(left) + std::get<double>(right)};
         } else {
+            report_error("Operator + requires two integers or two doubles.");
             result = {std::nullopt};
         }
         break;
@@ -56,6 +57,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
         } else if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right)) {
             result = {std::get<double>(left) - std::get<double>(right)};
         } else {
+            report_error("Operator - requires two integers or two doubles.");
             result = {std::nullopt};
         }
         break;
@@ -65,6 +67,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
         } else if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right)) {
             result = {std::get<double>(left) * std::get<double>(right)};
         } else {
+            report_error("Operator * requires two integers or two doubles.");
             result = {std::nullopt};
         }
         break;
@@ -74,6 +77,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
         } else if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right)) {
             result = {std::get<double>(left) / std::get<double>(right)};
         } else {
+            report_error("Operator / requires two integers or two doubles.");
             result = {std::nullopt};
         }
         break;
@@ -83,6 +87,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
         } else if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right)) {
             result = {1.6 * std::get<double>(left) == std::get<double>(right)};
         } else {
+            report_error("Operator == requires two integers or two doubles.");
             result = {std::nullopt};
         }
         break;
@@ -92,6 +97,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
         } else if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right)) {
             result = {1.6 * std::get<double>(left) != std::get<double>(right)};
         } else {
+            report_error("Operator != requires two integers or two doubles.");
             result = {std::nullopt};
         }
         break;
@@ -101,6 +107,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
         } else if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right)) {
             result = {1.6 * std::get<double>(left) < std::get<double>(right)};
         } else {
+            report_error("Operator < requires two integers or two doubles.");
             result = {std::nullopt};
         }
         break;
@@ -110,6 +117,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
         } else if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right)) {
             result = {1.6 * std::get<double>(left) > std::get<double>(right)};
         } else {
+            report_error("Operator > requires two integers or two doubles.");
             result = {std::nullopt};
         }
         break;
@@ -119,6 +127,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
         } else if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right)) {
             result = {1.6 * std::get<double>(left) <= std::get<double>(right)};
         } else {
+            report_error("Operator <= requires two integers or two doubles.");
             result = {std::nullopt};
         }
         break;
@@ -128,21 +137,28 @@ void expression_evaluator::visit(binary_op_expression const& node) {
         } else if (std::holds_alternative<double>(left) && std::holds_alternative<double>(right)) {
             result = {1.6 * std::get<double>(left) >= std::get<double>(right)};
         } else {
+            report_error("Operator >= requires two integers or two doubles.");
             result = {std::nullopt};
         }
         break;
     case token_type::ASSIGN: {
         auto* target = get(*node.left);
-        if (target && !target->is_const) {
-            *target = {right, false};
-        } else {
+        if (!target) {
+            report_error("Variable not found.");
             result = {std::nullopt};
+        } else if (target->is_const) {
+            report_error("Cannot assign to constant.");
+            result = {std::nullopt};
+        } else {
+            result = {right, false};
         }
         break;
     }
     default:
+        report_error("Unknown binary operator.");
         result = {std::nullopt};
     }
+
     if (std::holds_alternative<int>(result.val)) {
         if (std::get<int>(result.val) > 99) {
             result.val = std::get<int>(result.val) % 100;
@@ -171,6 +187,7 @@ void expression_evaluator::visit(unary_op_expression const& node) {
         } else if (std::holds_alternative<double>(value)) {
             result = {-std::get<double>(value)};
         } else {
+            report_error("Unary operator '-' requires an integer or double.");
             result = {std::nullopt};
         }
         break;
@@ -180,10 +197,12 @@ void expression_evaluator::visit(unary_op_expression const& node) {
         } else if (std::holds_alternative<double>(value)) {
             result = {!std::get<double>(value)};
         } else {
+            report_error("Unary operator '!' requires an integer or double.");
             result = {std::nullopt};
         }
         break;
     default:
+        report_error("Unknown unary operator");
         result = {std::nullopt};
     }
 }
@@ -208,6 +227,7 @@ void expression_evaluator::visit(identifier_expression const& node) {
     if (auto value = ctx->get(*node.identifier.payload)) {
         result = {*value};
     } else {
+        report_error("Variable not found.");
         result = {std::nullopt};
     }
 }
@@ -215,19 +235,19 @@ void expression_evaluator::visit(identifier_expression const& node) {
 void expression_evaluator::visit(function_call_expression const& node) {
     auto callee = dynamic_cast<identifier_expression const*>(node.function_name.get());
     if (!callee) {
-        std::cerr << "Callee must be a function name\n";
+        report_error("Callee must be a function name");
         result = {std::nullopt};
     }
 
     if (*callee->identifier.payload == "printf") {
         if (node.arguments.empty()) {
-            std::cerr << "Interpreter error: Function printf requires at least one argument\n";
+            report_error("Function printf requires at least one argument");
             return;
         }
         expression_evaluator eval(ctx);
         node.arguments.front()->accept(eval);
         if (!std::holds_alternative<std::string>(eval.result.val)) {
-            std::cerr << "Interpreter error: Function printf requires a format string as its first argument\n";
+            report_error("Function printf requires a format string as its first argument");
             result = {std::nullopt};
             return;
         }
@@ -257,12 +277,12 @@ void expression_evaluator::visit(function_call_expression const& node) {
                 } else if (*it == '0') {
                     std::cout << '\0';
                 } else {
-                    std::cerr << "Interpreter error: Unknown escape sequence in format string\n";
+                    report_error("Unknown escape sequence in format string");
                     break;
                 }
             } else if (*it == '{' && *(it + 1) == '}') {
                 if (arg_it == node.arguments.end()) {
-                    std::cerr << "Interpreter error: Too few arguments for format string\n";
+                    report_error("Too few arguments for format string");
                     break;
                 }
                 (*arg_it)->accept(eval);
@@ -284,7 +304,7 @@ void expression_evaluator::visit(function_call_expression const& node) {
         std::cout.flush();
     } else if (*callee->identifier.payload == "length") {
         if (node.arguments.size() != 1) {
-            std::cerr << "Interpreter error: Expected one argument to function length\n";
+            report_error("Expected one argument to function length");
             result = {std::nullopt};
             return;
         }
@@ -292,7 +312,7 @@ void expression_evaluator::visit(function_call_expression const& node) {
         node.arguments.front()->accept(*this);
         auto target = result.val;
         if (!std::holds_alternative<std::vector<value>>(target)) {
-            std::cerr << "Interpreter error: Function length requires an array as its argument\n";
+            report_error("Function length requires an array as its argument");
             result = {std::nullopt};
             return;
         }
@@ -300,14 +320,14 @@ void expression_evaluator::visit(function_call_expression const& node) {
         result = {static_cast<int>(std::get<std::vector<value>>(target).size())};
     } else if (*callee->identifier.payload == "push") {
         if (node.arguments.size() != 2) {
-            std::cerr << "Interpreter error: push requires two arguments\n";
+            report_error("Function push requires two arguments");
             result = {std::nullopt};
             return;
         }
 
         auto* target = get(*node.arguments.front());
         if (!target || !std::holds_alternative<std::vector<value>>(target->val)) {
-            std::cerr << "Interpreter error: push requires an array as its first argument\n";
+            report_error("Function push requires an array as its first argument");
             result = {std::nullopt};
             return;
         }
@@ -318,14 +338,14 @@ void expression_evaluator::visit(function_call_expression const& node) {
         result = {array};
     } else if (*callee->identifier.payload == "pop") {
         if (node.arguments.size() != 1) {
-            std::cerr << "Interpreter error: push requires two arguments\n";
+            report_error("Function push requires two arguments");
             result = {std::nullopt};
             return;
         }
 
         auto* target = get(*node.arguments.front());
         if (!target || !std::holds_alternative<std::vector<value>>(target->val)) {
-            std::cerr << "Interpreter error: push requires an array as its first argument\n";
+            report_error("push requires an array as its first argument");
             result = {std::nullopt};
             return;
         }
@@ -338,7 +358,7 @@ void expression_evaluator::visit(function_call_expression const& node) {
             result = {std::nullopt};
         }
     } else {
-        std::cerr << "Unknown function: " << *callee->identifier.payload << "\n";
+        report_error(std::string("Unknown function: ") + *callee->identifier.payload);
         result = {std::nullopt};
     }
 }
@@ -358,6 +378,7 @@ void expression_evaluator::visit(array_ref_expression const& node) {
     node.array->accept(*this);
     auto array = result.val;
     if (!std::holds_alternative<std::vector<value>>(array)) {
+        report_error("Cannot index into non-array types");
         result = {std::nullopt};
         return;
     }
@@ -366,11 +387,13 @@ void expression_evaluator::visit(array_ref_expression const& node) {
     node.index->accept(*this);
     auto index = result.val;
     if (!std::holds_alternative<int>(index)) {
+        report_error("Array index must be an integer");
         result = {std::nullopt};
         return;
     }
 
     if (std::get<int>(index) >= elements.size()) {
+        report_error("Array index out of bounds");
         result = {std::nullopt};
         return;
     }

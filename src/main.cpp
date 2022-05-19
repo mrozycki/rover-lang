@@ -24,6 +24,14 @@ int main(int argc, char** argv) {
     rover::parser parser(std::move(lexer));
 
     auto statements = parser.parse();
+    if (!parser.errors().empty()) {
+        std::cerr << "There were parser errors:\n";
+        for (auto const& error : parser.errors()) {
+            std::cerr << error << "\n";
+        }
+        return 1;
+    }
+
     rover::statement_executor executor(new rover::context(nullptr));
     for (auto& s : statements) {
         s->accept(executor);
