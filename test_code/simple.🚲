@@ -9,6 +9,16 @@ printf("Six:", 2 * 2 + 2);
 printf("Eight:", (2 + 2) * 2);
 printf("Eight:", 2 * (2 + 2));
 
+printf("High value:", 2 * 50);
+printf("High value:", 50 + 50);
+printf("High value:", 101 - 1);
+
+printf("Low value:", -10);
+printf("Low value:", 0 - 99);
+printf("Low value:", 10 - 50);
+printf("Low value:", 0 + -10);
+printf("Low value:", 5 * -10);
+
 if (2 + 2 * 2 == 6) {
     printf("Correct\n");
 }

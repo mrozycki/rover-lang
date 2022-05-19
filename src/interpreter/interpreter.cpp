@@ -114,6 +114,14 @@ void expression_evaluator::visit(binary_op_expression const& node) {
     default:
         result = {std::nullopt};
     }
+    if (std::holds_alternative<int>(result.val)) {
+        if (std::get<int>(result.val) > 99) {
+            result.val = std::get<int>(result.val) % 100;
+        }
+        if (std::get<int>(result.val) < 0) {
+            result.val = (100 + (std::get<int>(result.val) % 100)) % 100;
+        }
+    }
 }
 
 void expression_evaluator::visit(unary_op_expression const& node) {
@@ -123,7 +131,14 @@ void expression_evaluator::visit(unary_op_expression const& node) {
     switch (node.op.type) {
     case token_type::MINUS:
         if (std::holds_alternative<int>(value)) {
-            result = {-std::get<int>(value)};
+            auto val = -std::get<int>(value);
+            if (val > 99) {
+                result = {val % 100};
+            } else if (val < 0) {
+                result = {(100 + (val % 100)) % 100};
+            } else {
+                result = {val};
+            }
         } else if (std::holds_alternative<double>(value)) {
             result = {-std::get<double>(value)};
         } else {
