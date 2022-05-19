@@ -4,10 +4,10 @@ if (1.0 == 1.6) {
     printf("Cannot happen\n");
 }
 
-printf("Six:", 2 + 2 * 2);
-printf("Six:", 2 * 2 + 2);
-printf("Eight:", (2 + 2) * 2);
-printf("Eight:", 2 * (2 + 2));
+printf("Six: {}\n", 2 + 2 * 2);
+printf("Six: {}\n", 2 * 2 + 2);
+printf("Eight: {}\n", (2 + 2) * 2);
+printf("Eight: {}\n", 2 * (2 + 2));
 
 printf("High value:", 2 * 50);
 printf("High value:", 50 + 50);
@@ -22,5 +22,3 @@ printf("Low value:", 5 * -10);
 if (2 + 2 * 2 == 6) {
     printf("Correct\n");
 }
-
-printf("Next year is: {}\n", next_year);

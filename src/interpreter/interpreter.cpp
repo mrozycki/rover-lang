@@ -3,6 +3,36 @@
 namespace rover {
 expression_evaluator::expression_evaluator(context* ctx_) : ctx(ctx_) {}
 expression_evaluator::~expression_evaluator() {}
+
+value* expression_evaluator::get(expression const& node) {
+    if (auto* e = dynamic_cast<identifier_expression const*>(&node)) {
+        return ctx->get_ptr(*e->identifier.payload);
+    } else if (auto* e = dynamic_cast<array_ref_expression const*>(&node)) {
+        auto* array = get(*e->array);
+        if (!array || !std::holds_alternative<std::vector<value>>(array->val)) {
+            std::cerr << "Not an array\n";
+            return nullptr;
+        }
+
+        auto& array_ref = std::get<std::vector<value>>(array->val);
+        e->index->accept(*this);
+        auto index = result.val;
+        if (!std::holds_alternative<int>(index)) {
+            std::cerr << "Not an index\n";
+            return nullptr;
+        }
+
+        if (std::get<int>(index) >= array_ref.size()) {
+            std::cerr << "Index out of bounds\n";
+            return nullptr;
+        }
+
+        return &array_ref[std::get<int>(index)];
+    } else {
+        return nullptr;
+    }
+}
+
 void expression_evaluator::visit(binary_op_expression const& node) {
     node.left->accept(*this);
     auto left = result.val;
@@ -101,16 +131,15 @@ void expression_evaluator::visit(binary_op_expression const& node) {
             result = {std::nullopt};
         }
         break;
-    case token_type::ASSIGN:
-        if (auto target = dynamic_cast<identifier_expression const*>(node.left.get())) {
-            if (ctx->update(*target->identifier.payload, {right, false})) {
-                result = {right};
-            } else {
-                result = {std::nullopt};
-            }
+    case token_type::ASSIGN: {
+        auto* target = get(*node.left);
+        if (target && !target->is_const) {
+            *target = {right, false};
         } else {
             result = {std::nullopt};
         }
+        break;
+    }
     default:
         result = {std::nullopt};
     }
@@ -199,6 +228,7 @@ void expression_evaluator::visit(function_call_expression const& node) {
         node.arguments.front()->accept(eval);
         if (!std::holds_alternative<std::string>(eval.result.val)) {
             std::cerr << "Interpreter error: Function printf requires a format string as its first argument\n";
+            result = {std::nullopt};
             return;
         }
         auto format = std::get<std::string>(eval.result.val);
@@ -252,16 +282,101 @@ void expression_evaluator::visit(function_call_expression const& node) {
             }
         }
         std::cout.flush();
+    } else if (*callee->identifier.payload == "length") {
+        if (node.arguments.size() != 1) {
+            std::cerr << "Interpreter error: Expected one argument to function length\n";
+            result = {std::nullopt};
+            return;
+        }
+
+        node.arguments.front()->accept(*this);
+        auto target = result.val;
+        if (!std::holds_alternative<std::vector<value>>(target)) {
+            std::cerr << "Interpreter error: Function length requires an array as its argument\n";
+            result = {std::nullopt};
+            return;
+        }
+
+        result = {static_cast<int>(std::get<std::vector<value>>(target).size())};
+    } else if (*callee->identifier.payload == "push") {
+        if (node.arguments.size() != 2) {
+            std::cerr << "Interpreter error: push requires two arguments\n";
+            result = {std::nullopt};
+            return;
+        }
+
+        auto* target = get(*node.arguments.front());
+        if (!target || !std::holds_alternative<std::vector<value>>(target->val)) {
+            std::cerr << "Interpreter error: push requires an array as its first argument\n";
+            result = {std::nullopt};
+            return;
+        }
+
+        auto& array = std::get<std::vector<value>>(target->val);
+        node.arguments.back()->accept(*this);
+        array.push_back(result);
+        result = {array};
+    } else if (*callee->identifier.payload == "pop") {
+        if (node.arguments.size() != 1) {
+            std::cerr << "Interpreter error: push requires two arguments\n";
+            result = {std::nullopt};
+            return;
+        }
+
+        auto* target = get(*node.arguments.front());
+        if (!target || !std::holds_alternative<std::vector<value>>(target->val)) {
+            std::cerr << "Interpreter error: push requires an array as its first argument\n";
+            result = {std::nullopt};
+            return;
+        }
+
+        auto& array = std::get<std::vector<value>>(target->val);
+        if (!array.empty()) {
+            result = {array.back()};
+            array.pop_back();
+        } else {
+            result = {std::nullopt};
+        }
     } else {
         std::cerr << "Unknown function: " << *callee->identifier.payload << "\n";
+        result = {std::nullopt};
     }
-    result = {1};
 }
 
-// TODO: Implement arrays
-void expression_evaluator::visit(array_literal_expression const& node) { result = {std::nullopt}; }
+void expression_evaluator::visit(array_literal_expression const& node) {
+    std::vector<value> elements;
+    elements.reserve(node.elements.size());
 
-void expression_evaluator::visit(array_ref_expression const& node) { result = {std::nullopt}; }
+    for (auto const& element : node.elements) {
+        element->accept(*this);
+        elements.push_back({result.val, false});
+    }
+    result = {elements};
+}
+
+void expression_evaluator::visit(array_ref_expression const& node) {
+    node.array->accept(*this);
+    auto array = result.val;
+    if (!std::holds_alternative<std::vector<value>>(array)) {
+        result = {std::nullopt};
+        return;
+    }
+
+    auto const& elements = std::get<std::vector<value>>(array);
+    node.index->accept(*this);
+    auto index = result.val;
+    if (!std::holds_alternative<int>(index)) {
+        result = {std::nullopt};
+        return;
+    }
+
+    if (std::get<int>(index) >= elements.size()) {
+        result = {std::nullopt};
+        return;
+    }
+
+    result = elements[std::get<int>(index)];
+}
 
 statement_executor::statement_executor(context* ctx_) : ctx(ctx_) {}
 statement_executor::~statement_executor() {}

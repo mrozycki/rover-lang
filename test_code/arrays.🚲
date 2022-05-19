@@ -1,0 +1,19 @@
+var array = [4, 8, 15, 16, 23, 42];
+
+printf("array[2] = {}\n", array[2]);
+
+array[3] = 7;
+printf("{}\n", array[3]);
+
+push(array, 17);
+printf("{}\n", array[6]);
+
+var board = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+printf("{}\n", board[2][0]);
+
+board[0][0] = 9;
+printf("{}\n", board[0][0]);
+
+printf("Length of board: {}\n", length(board));
+pop(board);
+printf("Length after popping: {}\n", length(board));

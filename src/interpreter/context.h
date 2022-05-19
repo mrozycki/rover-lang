@@ -18,6 +18,7 @@ public:
 
     void set(std::string const& name, value const& v);
     bool update(std::string const& name, value const& v);
-    std::optional<value> get(std::string const& name) const;
+    std::optional<value> get(std::string const& name);
+    value* get_ptr(std::string const& name);
 };
 } // namespace rover

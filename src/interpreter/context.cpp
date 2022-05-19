@@ -23,14 +23,22 @@ bool context::update(std::string const& name, value const& v) {
     return true;
 }
 
-std::optional<value> context::get(std::string const& name) const {
-    auto it = variables.find(name);
-    if (it != variables.end()) {
-        return it->second;
-    } else if (parent) {
-        return parent->get(name);
+std::optional<value> context::get(std::string const& name) {
+    if (auto ptr = get_ptr(name)) {
+        return *ptr;
     } else {
         return std::nullopt;
+    }
+}
+
+value* context::get_ptr(std::string const& name) {
+    auto it = variables.find(name);
+    if (it != variables.end()) {
+        return &(it->second);
+    } else if (parent) {
+        return parent->get_ptr(name);
+    } else {
+        return nullptr;
     }
 }
 } // namespace rover

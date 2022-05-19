@@ -11,6 +11,7 @@ namespace rover {
 class expression_evaluator : public expression_visitor {
 private:
     context* ctx;
+    value* get(expression const& node);
 
 public:
     explicit expression_evaluator(context* ctx_);
