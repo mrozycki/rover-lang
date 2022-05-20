@@ -1,7 +1,7 @@
-var mile = 1.6;
-var km = 1.0;
+var dist_in_km = 1.6;
+var dist_in_miles = 1.0;
 
-if (mile == km) {
+if (dist_in_miles == dist_in_km) {
     printf("Hello, rover!\n");
 } else {
     printf("Cannot happen\n");
@@ -23,6 +23,7 @@ arr[2] = 9;
 var i = 0;
 while (i < length(arr)) {
     printf("{} ", arr[i]);
+    i = i + 1;
 }
 printf("\n");
 
