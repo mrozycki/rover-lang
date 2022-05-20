@@ -151,6 +151,7 @@ void expression_evaluator::visit(binary_op_expression const& node) {
             result = {std::nullopt};
         } else {
             result = {right, false};
+            *target = {right, false};
         }
         break;
     }
